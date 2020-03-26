@@ -1,0 +1,68 @@
+using System;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
+using Event_Attendees_Tracker_BAL.Authentication;
+using Event_Attendees_Tracker_API.Controllers;
+using System.Web.Http;
+using System.Web.Http.Results;
+using System.Net.Http;
+using Event_Attendees_Tracker_API.Models;
+using Event_Attendees_Tracker_BAL.Models.ResponseModels;
+using System.Diagnostics;
+
+namespace Event_Attendees_Tracker_API.Tests.Controllers
+{
+    [TestClass]
+    public class LoginTest
+    {
+        [TestMethod]
+        public void Post_Status_OK()
+        {
+            //Arrange
+            var moqUserLogin = new Mock<IUserLogin>();
+            moqUserLogin.Setup(m => m.LoginUserWithEmailAndPassword(It.IsAny<string>(), It.IsAny<string>())).Returns(getLoginResponseModel());
+            var controller = new LoginController(moqUserLogin.Object);
+            LoginModel loginModel = new LoginModel();
+            controller.Request = new HttpRequestMessage();
+            controller.Configuration = new HttpConfiguration();
+
+            //Act 
+            var response =controller.Post(loginModel);
+
+            //Assert
+            Assert.AreEqual(response.StatusCode,System.Net.HttpStatusCode.OK);
+
+        }
+
+        private ILogin_ResponseModel getLoginResponseModel()
+        {
+            Login_ResponseModel login_ResponseModel = new Login_ResponseModel();
+            login_ResponseModel.RoleName = It.IsAny<string>();
+            login_ResponseModel.UserID = It.IsAny<int>();
+
+            return login_ResponseModel;
+        }
+
+        [TestMethod]
+        public void Post_Status_BadRequest()
+        {
+            //Arrange
+            var moqUserLogin = new Mock<IUserLogin>();
+            LoginModel loginModel = new LoginModel();
+            loginModel.Email = null;
+            loginModel.Password = null;
+            moqUserLogin.Setup(m => m.LoginUserWithEmailAndPassword(It.IsAny<string>(), It.IsAny<string>()));
+            var controller = new LoginController(moqUserLogin.Object);
+            controller.Request = new HttpRequestMessage();
+            controller.Configuration = new HttpConfiguration();
+
+            //Act 
+            var response = controller.Post(loginModel);
+         
+            //Assert
+            Assert.AreEqual(response.StatusCode, System.Net.HttpStatusCode.BadRequest);
+           
+
+        }
+    }
+}
